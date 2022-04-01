@@ -50,7 +50,7 @@ int ngx_http_lua_ffi_shdict_get(void *zone, const unsigned char *key,
     int get_stale, int *is_stale, char **errmsg);
 
 int ngx_http_lua_ffi_shdict_incr(void *zone, const unsigned char *key,
-    size_t key_len, double *value, int exptime, char **err, int has_init,
+    size_t key_len, double *value, char **err, int has_init,
     double init, long init_ttl, int *forcible);
 
 int ngx_http_lua_ffi_shdict_store(void *zone, int op,
@@ -441,7 +441,7 @@ local function shdict_get_stale(zone, key)
 end
 
 
-local function shdict_incr(zone, key, value, exptime, init, init_ttl)
+local function shdict_incr(zone, key, value, init, init_ttl)
     zone = check_zone(zone)
 
     if key == nil then
@@ -460,13 +460,10 @@ local function shdict_incr(zone, key, value, exptime, init, init_ttl)
         return nil, "key too long"
     end
 
-    value = value or 1
     if type(value) ~= "number" then
         value = tonumber(value)
     end
     num_value[0] = value
-    
-    exptime = exptime or -1
 
     if init then
         local typ = type(init)
@@ -489,10 +486,6 @@ local function shdict_incr(zone, key, value, exptime, init, init_ttl)
             end
         end
 
-        if init_ttl < 0 then
-            error('bad "init_ttl" argument', 2)
-        end
-
         if not init then
             error('must provide "init" when providing "init_ttl"', 2)
         end
@@ -501,7 +494,7 @@ local function shdict_incr(zone, key, value, exptime, init, init_ttl)
         init_ttl = 0
     end
 
-    local rc = ngx_lua_ffi_shdict_incr(zone, key, key_len, num_value, exptime,
+    local rc = ngx_lua_ffi_shdict_incr(zone, key, key_len, num_value,
                                        errmsg, init and 1 or 0,
                                        init or 0, init_ttl * 1000,
                                        forcible)
