@@ -485,11 +485,6 @@ local function shdict_incr(zone, key, value, init, init_ttl)
                 error("bad init_ttl arg: number expected, got " .. typ, 2)
             end
         end
-
-        if not init then
-            error('must provide "init" when providing "init_ttl"', 2)
-        end
-
     else
         init_ttl = 0
     end
