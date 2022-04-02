@@ -26,7 +26,6 @@ local ngx_lua_ffi_ssl_set_ciphers
 local ngx_lua_ffi_ssl_set_protocols
 local ngx_http_lua_ffi_ssl_client_server_name
 local ngx_http_lua_ffi_ssl_set_protocols
-local ngx_http_lua_ffi_ssl_set_ciphers
 local ngx_lua_ffi_ssl_set_der_certificate
 local ngx_lua_ffi_ssl_clear_certs
 local ngx_lua_ffi_ssl_set_der_private_key
@@ -53,9 +52,6 @@ if subsystem == 'http' then
 
     int ngx_http_lua_ffi_ssl_set_protocols(ngx_http_request_t *r,
         int protocols, char **err);
-
-    int ngx_http_lua_ffi_ssl_set_ciphers(void *r,
-        const unsigned char *cdata, char **err);
 
     int ngx_http_lua_ffi_ssl_set_der_certificate(ngx_http_request_t *r,
         const char *data, size_t len, char **err);
@@ -107,7 +103,6 @@ if subsystem == 'http' then
 
     ngx_stream_lua_ffi_ssl_set_der_certificate =
         C.ngx_http_lua_ffi_ssl_get_client_hello_server_name
-    ngx_lua_ffi_ssl_set_ciphers = C.ngx_http_lua_ffi_ssl_set_ciphers
     ngx_lua_ffi_ssl_set_protocols = C.ngx_http_lua_ffi_ssl_set_protocols
     ngx_lua_ffi_ssl_set_der_certificate =
         C.ngx_http_lua_ffi_ssl_set_der_certificate
