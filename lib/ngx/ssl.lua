@@ -21,7 +21,7 @@ local FFI_DECLINED = base.FFI_DECLINED
 local FFI_OK = base.FFI_OK
 local subsystem = ngx.config.subsystem
 
-local ngx_lua_ffi_ssl_client_server_name
+local ngx_stream_lua_ffi_ssl_set_der_certificate
 local ngx_lua_ffi_ssl_set_ciphers
 local ngx_lua_ffi_ssl_set_protocols
 local ngx_http_lua_ffi_ssl_client_server_name
@@ -48,7 +48,7 @@ local ngx_lua_ffi_ssl_verify_client
 
 if subsystem == 'http' then
     ffi.cdef[[
-    int ngx_http_lua_ffi_ssl_client_server_name(ngx_http_request_t *r,
+    int ngx_http_lua_ffi_ssl_get_client_hello_server_name(ngx_http_request_t *r,
         char **name, size_t *namelen, char **err);
 
     int ngx_http_lua_ffi_ssl_set_protocols(ngx_http_request_t *r,
@@ -105,8 +105,8 @@ if subsystem == 'http' then
         void *cdata, int depth, char **err);
     ]]
 
-    ngx_lua_ffi_ssl_client_server_name =
-        C.ngx_http_lua_ffi_ssl_client_server_name
+    ngx_stream_lua_ffi_ssl_set_der_certificate =
+        C.ngx_http_lua_ffi_ssl_get_client_hello_server_name
     ngx_lua_ffi_ssl_set_ciphers = C.ngx_http_lua_ffi_ssl_set_ciphers
     ngx_lua_ffi_ssl_set_protocols = C.ngx_http_lua_ffi_ssl_set_protocols
     ngx_lua_ffi_ssl_set_der_certificate =
@@ -222,7 +222,7 @@ function _M.client_server_name()
 
     local sizep = get_size_ptr()
 
-    local rc = ngx_lua_ffi_ssl_client_server_name(r, charpp, sizep, errmsg)
+    local rc = ngx_stream_lua_ffi_ssl_set_der_certificate(r, charpp, sizep, errmsg)
     if rc == FFI_OK then
         return ffi_str(charpp[0], sizep[0])
     end
