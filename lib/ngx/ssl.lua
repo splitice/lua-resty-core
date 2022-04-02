@@ -102,7 +102,7 @@ if subsystem == 'http' then
         void *cdata, int depth, char **err);
     ]]
 
-    ngx_lua_ffi_ssl_get_client_hello_server_name =
+    ngx_http_lua_ffi_ssl_get_client_hello_server_name =
         C.ngx_http_lua_ffi_ssl_get_client_hello_server_name
     ngx_lua_ffi_ssl_set_protocols = C.ngx_http_lua_ffi_ssl_set_protocols
     ngx_lua_ffi_ssl_set_der_certificate =
