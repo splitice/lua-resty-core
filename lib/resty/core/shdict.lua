@@ -31,6 +31,8 @@ local FFI_DECLINED = base.FFI_DECLINED
 local subsystem = ngx.config.subsystem
 
 
+local ngx_lua_ffi_shdict_tacalc
+local ngx_lua_ffi_shdict_tahit
 local ngx_lua_ffi_shdict_get
 local ngx_lua_ffi_shdict_incr
 local ngx_lua_ffi_shdict_store
@@ -44,6 +46,11 @@ local ngx_lua_ffi_shdict_udata_to_zone
 
 if subsystem == 'http' then
     ffi.cdef[[
+
+int ngx_http_lua_shared_dict_tacalc(ngx_shm_zone_t *zone, u_char *key_data,
+    size_t key_len, ngx_http_lua_value_t *value);
+int ngx_http_lua_ffi_shdict_tahit(ngx_shm_zone_t *zone, u_char *key, size_t key_len, long bucket_interval, 
+    long by, long exptime, int user_flags, char **errmsg, long* sum)
 int ngx_http_lua_ffi_shdict_get(void *zone, const unsigned char *key,
     size_t key_len, int *value_type, unsigned char **str_value_buf,
     size_t *str_value_len, double *num_value, int *user_flags,
@@ -72,6 +79,8 @@ size_t ngx_http_lua_ffi_shdict_capacity(void *zone);
 void *ngx_http_lua_ffi_shdict_udata_to_zone(void *zone_udata);
     ]]
 
+    ngx_lua_ffi_shdict_tacalc = C.ngx_http_lua_shared_dict_tacalc
+    ngx_lua_ffi_shdict_tahit = C.ngx_http_lua_ffi_shdict_tahit
     ngx_lua_ffi_shdict_get = C.ngx_http_lua_ffi_shdict_get
     ngx_lua_ffi_shdict_incr = C.ngx_http_lua_ffi_shdict_incr
     ngx_lua_ffi_shdict_store = C.ngx_http_lua_ffi_shdict_store
@@ -504,6 +513,58 @@ local function shdict_incr(zone, key, value, init, init_ttl)
     return tonumber(num_value[0]), nil, forcible[0] == 1
 end
 
+local function shdict_tahit(zone, key, bucket_interval, by, exptime)
+    zone = check_zone(zone)
+
+    if key == nil then
+        return nil, "nil key"
+    end
+
+    if type(key) ~= "string" then
+        key = tostring(key)
+    end
+
+    local key_len = #key
+    if key_len == 0 then
+        return nil, "empty key"
+    end
+    if key_len > 65535 then
+        return nil, "key too long"
+    end
+
+    local rc = ngx_lua_ffi_shdict_tahit(zone, key, key_len, bucket_interval,
+                                       by, exptime, 0, errmsg, num_value)
+    if rc ~= 0 then  -- ~= NGX_OK
+        return nil, ffi_str(errmsg[0])
+    end
+    return tonumber(num_value[0]), nil
+end
+
+local function shdict_tacalc(zone, key)
+    zone = check_zone(zone)
+
+    if key == nil then
+        return nil, "nil key"
+    end
+
+    if type(key) ~= "string" then
+        key = tostring(key)
+    end
+
+    local key_len = #key
+    if key_len == 0 then
+        return nil, "empty key"
+    end
+    if key_len > 65535 then
+        return nil, "key too long"
+    end
+
+    local rc = ngx_lua_ffi_shdict_tacalc(zone, key, key_len, num_value)
+    if rc ~= 0 then  -- ~= NGX_OK
+        return nil
+    end
+    return tonumber(num_value[0]), nil
+end
 
 local function shdict_flush_all(zone)
     zone = check_zone(zone)
@@ -610,6 +671,8 @@ if dict then
             mt.get = shdict_get
             mt.get_stale = shdict_get_stale
             mt.incr = shdict_incr
+            mt.tahit = shdict_tahit
+            mt.tacalc = shdict_tacalc
             mt.set = shdict_set
             mt.safe_set = shdict_safe_set
             mt.add = shdict_add
