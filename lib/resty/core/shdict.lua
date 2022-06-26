@@ -513,8 +513,12 @@ local function shdict_incr(zone, key, value, init, init_ttl)
     return tonumber(num_value[0]), nil, forcible[0] == 1
 end
 
-local function shdict_tahit(zone, key, bucket_interval, by, exptime)
+local function shdict_tahit(zone, key, bucket_interval, exptime, by)
     zone = check_zone(zone)
+
+    if by == nil then
+        by = 1
+    end
 
     if key == nil then
         return nil, "nil key"
