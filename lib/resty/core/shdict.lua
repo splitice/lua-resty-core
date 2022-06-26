@@ -47,10 +47,10 @@ local ngx_lua_ffi_shdict_udata_to_zone
 if subsystem == 'http' then
     ffi.cdef[[
 
-int ngx_http_lua_shared_dict_tacalc(ngx_shm_zone_t *zone, u_char *key_data,
-    size_t key_len, ngx_http_lua_value_t *value);
-int ngx_http_lua_ffi_shdict_tahit(ngx_shm_zone_t *zone, u_char *key, size_t key_len, long bucket_interval, 
-    long by, long exptime, int user_flags, char **errmsg, long* sum)
+int ngx_http_lua_shared_dict_tacalc(void *zone, const unsigned char *key_data, size_t key_len, double *num_value);
+int ngx_http_lua_ffi_shdict_tahit(void *zone, const unsigned char *key, size_t key_len, long bucket_interval,
+    long by, long exptime, int user_flags, char **errmsg, double* sum);
+        
 int ngx_http_lua_ffi_shdict_get(void *zone, const unsigned char *key,
     size_t key_len, int *value_type, unsigned char **str_value_buf,
     size_t *str_value_len, double *num_value, int *user_flags,
@@ -832,7 +832,7 @@ local function shdict_tahit(zone, key, bucket_interval, exptime, by)
     end
 
     local rc = ngx_lua_ffi_shdict_tahit(zone, key, key_len, bucket_interval,
-                                       by, exptime, 0, errmsg, num_value)
+                                       by, exptime * 1000, 0, errmsg, num_value)
     if rc ~= 0 then  -- ~= NGX_OK
         return nil, ffi_str(errmsg[0])
     end
