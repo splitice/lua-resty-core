@@ -823,6 +823,10 @@ local function shdict_tahit(zone, key, bucket_interval, exptime, by)
         key = tostring(key)
     end
 
+    if exptime == nil then
+        exptime = bucket_interval * 32
+    end
+
     local key_len = #key
     if key_len == 0 then
         return nil, "empty key"
