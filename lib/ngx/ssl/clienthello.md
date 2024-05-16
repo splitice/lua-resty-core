@@ -12,6 +12,7 @@ Table of Contents
 * [Description](#description)
 * [Methods](#methods)
     * [get_client_hello_server_name](#get_client_hello_server_name)
+    * [get_supported_versions](#get_supported_versions)
     * [get_client_hello_ext](#get_client_hello_ext)
     * [set_protocols](#set_protocols)
 * [Community](#community)
@@ -25,7 +26,7 @@ Table of Contents
 Status
 ======
 
-This Lua module is currently considered experimental.
+This Lua module is production ready.
 
 Synopsis
 ========
