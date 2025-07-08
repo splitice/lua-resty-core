@@ -16,7 +16,7 @@ local co_yield = coroutine._yield
 local subsystem = ngx.config.subsystem
 
 
-local ngx_lua_ffi_exit, ngx_http_lua_ngx_staticfile_ffi, ngx_http_lua_ngx_skipbodyfilter_ffi
+local ngx_lua_ffi_exit, ngx_http_lua_ngx_staticfile_ffi, ngx_http_lua_ngx_skipbodyfilter_ffi, ngx_http_lua_ngx_skipheaderfilter_ffi
 
 
 if subsystem == "http" then
@@ -26,11 +26,13 @@ if subsystem == "http" then
     
     int ngx_http_lua_ngx_staticfile_ffi(ngx_http_request_t *r, const char *p, size_t len);
     void ngx_http_lua_ngx_skipbodyfilter_ffi(ngx_http_request_t *r);
+    void ngx_http_lua_ngx_skipheaderfilter_ffi(ngx_http_request_t *r);
 ]]
 
     ngx_lua_ffi_exit = C.ngx_http_lua_ffi_exit
     ngx_http_lua_ngx_staticfile_ffi = C.ngx_http_lua_ngx_staticfile_ffi
     ngx_http_lua_ngx_skipbodyfilter_ffi = C.ngx_http_lua_ngx_skipbodyfilter_ffi
+    ngx_http_lua_ngx_skipheaderfilter_ffi = C.ngx_http_lua_ngx_skipheaderfilter_ffi
 
 elseif subsystem == "stream" then
     ffi.cdef[[
@@ -82,6 +84,15 @@ ngx.skip_body_filter = function()
     end
 
     ngx_http_lua_ngx_skipbodyfilter_ffi(r)
+end
+
+ngx.skip_header_filter = function()
+    local r = get_request()
+    if not r then
+        error("no request found")
+    end
+
+    ngx_http_lua_ngx_skipheaderfilter_ffi(r)
 end
 
 return {
