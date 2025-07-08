@@ -24,7 +24,7 @@ if subsystem == "http" then
     int ngx_http_lua_ffi_exit(ngx_http_request_t *r, int status,
                                unsigned char *err, size_t *errlen);
     
-    bool ngx_http_lua_ngx_staticfile_ffi(ngx_http_request_t *r, const char *p, size_t len);
+    int ngx_http_lua_ngx_staticfile_ffi(ngx_http_request_t *r, const char *p, size_t len);
 ]]
 
     ngx_lua_ffi_exit = C.ngx_http_lua_ffi_exit
