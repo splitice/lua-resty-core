@@ -50,6 +50,7 @@ local ngx_lua_ffi_ssl_client_random
 local ngx_lua_ffi_ssl_export_keying_material
 local ngx_lua_ffi_ssl_export_keying_material_early
 local ngx_lua_ffi_get_req_ssl_pointer
+local lua_http_domain_sanitize_ffi
 
 
 if subsystem == 'http' then
@@ -112,6 +113,8 @@ if subsystem == 'http' then
 
     void ngx_http_lua_ffi_free_priv_key(void *cdata);
 
+    char* lua_http_domain_sanitize_ffi(const char *domain, size_t len);
+
     int ngx_http_lua_ffi_ssl_verify_client(void *r,
         void *client_certs, void *trusted_certs, int depth, char **err);
 
@@ -159,6 +162,7 @@ if subsystem == 'http' then
     ngx_lua_ffi_ssl_export_keying_material_early =
         C.ngx_http_lua_ffi_ssl_export_keying_material_early
     ngx_lua_ffi_get_req_ssl_pointer = C.ngx_http_lua_ffi_get_req_ssl_pointer
+    lua_http_domain_sanitize_ffi = C.lua_http_domain_sanitize_ffi
 
 elseif subsystem == 'stream' then
     ffi.cdef[[
@@ -740,6 +744,26 @@ function _M.get_client_random(outlen)
     end
 
     return nil, ffi_str(errmsg[0])
+end
+
+function _M.domain_sanitize(domain)
+    if not domain or type(domain) ~= "string" then
+        return nil, "domain must be a string"
+    end
+
+    local len = #domain
+    if len == 0 then
+        return nil, "domain cannot be empty"
+    end
+
+    local first_dot = 0
+
+    local sanitized_domain = lua_http_domain_sanitize_ffi(domain, len, first_dot)
+    if not sanitized_domain then
+        return nil, "failed to sanitize domain"
+    end
+
+    return ffi_str(sanitized_domain), first_dot
 end
 
 

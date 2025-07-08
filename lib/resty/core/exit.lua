@@ -16,16 +16,19 @@ local co_yield = coroutine._yield
 local subsystem = ngx.config.subsystem
 
 
-local ngx_lua_ffi_exit
+local ngx_lua_ffi_exit, ngx_http_lua_ngx_staticfile_ffi
 
 
 if subsystem == "http" then
     ffi.cdef[[
     int ngx_http_lua_ffi_exit(ngx_http_request_t *r, int status,
                                unsigned char *err, size_t *errlen);
-    ]]
+    
+    bool ngx_http_lua_ngx_staticfile_ffi(ngx_http_request_t *r, const char *p, size_t len);
+]]
 
     ngx_lua_ffi_exit = C.ngx_http_lua_ffi_exit
+    ngx_http_lua_ngx_staticfile_ffi = C.ngx_http_lua_ngx_staticfile_ffi
 
 elseif subsystem == "stream" then
     ffi.cdef[[
@@ -60,6 +63,15 @@ ngx.exit = function (rc)
     error(ffi_string(err, errlen[0]), 2)
 end
 
+
+ngx.staticfile = function(path) 
+    local r = get_request()
+    if not r then
+        error("no request found")
+    end
+
+    ngx_http_lua_ngx_staticfile_ffi(r, path, #path)
+end
 
 return {
     version = base.version
