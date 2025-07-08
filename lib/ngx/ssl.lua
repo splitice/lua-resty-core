@@ -18,6 +18,7 @@ local errmsg = base.get_errmsg_ptr()
 local get_string_buf = base.get_string_buf
 local get_size_ptr = base.get_size_ptr
 local FFI_DECLINED = base.FFI_DECLINED
+local ffi_new = ffi.new
 local FFI_OK = base.FFI_OK
 local subsystem = ngx.config.subsystem
 
@@ -756,7 +757,8 @@ function _M.domain_sanitize(domain)
         return nil, "domain cannot be empty"
     end
 
-    local first_dot = 0
+    local first_dot = ffi_new("uint64_t[1]")
+    first_dot[0] = 0
 
     local sanitized_domain = lua_http_domain_sanitize_ffi(domain, len, first_dot)
     if not sanitized_domain then
