@@ -113,7 +113,7 @@ if subsystem == 'http' then
 
     void ngx_http_lua_ffi_free_priv_key(void *cdata);
 
-    char* lua_http_domain_sanitize_ffi(const char *domain, size_t len);
+    char* lua_http_domain_sanitize_ffi(const char *domain, size_t len, size_t* first_dot);
 
     int ngx_http_lua_ffi_ssl_verify_client(void *r,
         void *client_certs, void *trusted_certs, int depth, char **err);
