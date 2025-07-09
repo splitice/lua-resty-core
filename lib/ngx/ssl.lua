@@ -31,6 +31,11 @@ local ngx_http_lua_ffi_ssl_set_protocols
 local ngx_lua_ffi_ssl_set_der_certificate
 local ngx_lua_ffi_ssl_clear_certs
 local ngx_lua_ffi_ssl_set_der_private_key
+
+local ngx_lua_ffi_parse_private_key
+local ngx_lua_ffi_apply_private_key
+local ngx_lua_ffi_free_private_key
+
 local ngx_lua_ffi_ssl_raw_server_addr
 local ngx_lua_ffi_ssl_server_port
 local ngx_lua_ffi_ssl_server_name
@@ -131,6 +136,11 @@ if subsystem == 'http' then
         unsigned char *out, size_t out_size,
         const char *label, size_t llen,
         const unsigned char *ctx, size_t ctxlen, char **err);
+
+
+    void* ngx_http_lua_ffi_parse_private_key(const char *data, size_t len, char **err);
+    int ngx_http_lua_ffi_apply_private_key(void *r, void* pkey);
+    void ngx_http_lua_ffi_free_private_key(void* pkey);
     ]]
 
     ngx_http_lua_ffi_ssl_get_client_hello_server_name =
@@ -164,6 +174,9 @@ if subsystem == 'http' then
         C.ngx_http_lua_ffi_ssl_export_keying_material_early
     ngx_lua_ffi_get_req_ssl_pointer = C.ngx_http_lua_ffi_get_req_ssl_pointer
     lua_http_domain_sanitize_ffi = C.lua_http_domain_sanitize_ffi
+    ngx_lua_ffi_parse_private_key = C.ngx_http_lua_ffi_parse_private_key
+    ngx_lua_ffi_apply_private_key = C.ngx_http_lua_ffi_apply_private_key
+    ngx_lua_ffi_free_private_key = C.ngx_http_lua_ffi_free_private_key
 
 elseif subsystem == 'stream' then
     ffi.cdef[[
@@ -374,6 +387,41 @@ function _M.set_der_priv_key(data)
     end
 
     return nil, ffi_str(errmsg[0])
+end
+
+
+function _M.parse_der_priv_key(data)
+    local r = get_request()
+    if not r then
+        error("no request found")
+    end
+
+    local rc = ngx_lua_ffi_parse_private_key(data, #data, errmsg)
+    if rc == nil then
+        return nil, ffi_str(errmsg[0])
+    end
+
+    ffi_gc(rc, ngx_lua_ffi_free_private_key)
+
+    return rc
+end
+
+function _M.apply_priv_key(priv_key)
+    local r = get_request()
+    if not r then
+        error("no request found")
+    end
+
+    if priv_key == nil then
+        return nil, "private key invalid"
+    end
+
+    local rc = ngx_lua_ffi_apply_private_key(r, priv_key)
+    if rc == 0 then
+        return true
+    end
+
+    return nil, "failed to apply private key"
 end
 
 
