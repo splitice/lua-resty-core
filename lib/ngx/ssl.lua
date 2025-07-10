@@ -813,7 +813,7 @@ function _M.domain_sanitize(domain)
         return nil, "failed to sanitize domain"
     end
 
-    return ffi_str(sanitized_domain), first_dot
+    return ffi_str(sanitized_domain), tonumber(first_dot[0])
 end
 
 
